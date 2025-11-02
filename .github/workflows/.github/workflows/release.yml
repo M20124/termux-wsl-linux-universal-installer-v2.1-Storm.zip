@@ -1,0 +1,30 @@
+name: 🚀 StormOS Auto Release
+
+on:
+  workflow_dispatch:          # ✅ Запуск вручну (Actions → Run Workflow)
+  push:
+    tags:
+      - 'v*'                  # ✅ Авто-запуск якщо ти створиш тег v4.0.0, v4.1.0 тощо
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Клонування репозиторію
+        uses: actions/checkout@v3
+
+      - name: 🛠 Встановлення zip (якщо немає)
+        run: sudo apt-get update && sudo apt-get install -y zip
+
+      - name: 🗜 Пакування StormOS
+        run: |
+          mkdir -p build
+          zip -r build/StormOS-${{ github.ref_name }}.zip . -x "*.git*" -x ".github/*"
+
+      - name: 📤 Створення GitHub релізу + завантаження ZIP
+        uses: softprops/action-gh-release@v1
+        with:
+          files: build/StormOS-${{ github.ref_name }}.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
